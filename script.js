@@ -9,11 +9,12 @@ const messagePrompt = document.getElementById('message-prompt');
 const heartButton = document.getElementById('heart-button');
 const finalMessage = document.getElementById('final-message');
 
-// --- Animation State ---
+// --- Animation State & Performance Tuning ---
 let branchDrawn = false;
 let blossoms = [];
 let plums = [];
-const NUM_BLOSSOMS = 50; // Increased for a fuller tree
+// REDUCED for better performance
+const NUM_BLOSSOMS = 35; 
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
@@ -42,34 +43,33 @@ function random(min, max) {
 
 /**
  * Represents a single plum particle floating on the screen.
- * REWORKED: Now has a "detaching" phase before floating freely.
+ * Physics tweaked for a softer feel.
  */
 class Plum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = random(4, 8);
-        this.color = `hsl(${random(300, 340)}, 85%, 65%)`;
+        this.size = random(3, 7); // Made slightly smaller to reduce visual clutter
+        this.color = `hsl(${random(310, 350)}, 85%, 68%)`;
         
         // Initial state: gentle detachment
-        this.vx = random(-0.2, 0.2); // Very little initial horizontal speed
-        this.vy = random(0.1, 0.5);  // Start by falling slowly
+        this.vx = random(-0.1, 0.1); // Even less initial horizontal speed
+        this.vy = random(0.2, 0.6);  // Start by falling slowly
         
-        this.gravity = 0.015;
-        this.wind = 0; // Wind doesn't affect it at the start
-        this.drag = 0.98;
+        this.gravity = 0.01; // Reduced gravity for a "floatier" effect
+        this.wind = 0;
+        this.drag = 0.99;
         
-        // Timer to control when it starts drifting
         this.life = 0;
-        this.driftLife = random(60, 120); // Time before it starts drifting freely
+        this.driftLife = random(80, 150);
     }
 
     update() {
         this.life++;
 
-        // After a short time, the plum detaches and is caught by the wind
         if (this.life > this.driftLife) {
-            this.wind = (Math.sin(this.life / 50) + random(-0.2, 0.2)) * 0.15;
+            // A gentler, more predictable sine-wave wind
+            this.wind = Math.sin(this.life / 60) * 0.1;
         }
 
         this.vy += this.gravity;
@@ -83,9 +83,9 @@ class Plum {
         if (this.y > height + this.size) {
             this.x = random(0, width);
             this.y = -this.size; // Restart from the top
-            this.life = 0; // Reset life to restart detachment behavior
-            this.vx = random(-0.2, 0.2);
-            this.vy = random(0.1, 0.5);
+            this.life = 0;
+            this.vx = random(-0.1, 0.1);
+            this.vy = random(0.2, 0.6);
             this.wind = 0;
         }
     }
@@ -107,9 +107,9 @@ class Blossom {
         this.y = y;
         this.maxSize = random(12, 22);
         this.size = 0;
-        this.growthRate = random(0.1, 0.25);
+        this.growthRate = random(0.15, 0.3); // Slightly faster growth
         this.isGrown = false;
-        this.color = `rgba(255, 192, 203, ${random(0.6, 1)})`; // Pink
+        this.color = `rgba(255, 192, 203, ${random(0.7, 1)})`; // Pink
         this.centerColor = '#FFFDD0'; // Cream
     }
 
@@ -140,17 +140,12 @@ class Blossom {
 }
 
 /**
- * REWORKED: Draws a more visible and structured tree.
+ * REWORKED: Draws a much more visible and performance-friendly tree.
  */
 function drawBranch(startX, startY, length, angle, width, color) {
-    ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.lineCap = 'round';
-    
-    // Add a shadow for depth
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-    ctx.shadowBlur = 10;
     
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -158,23 +153,27 @@ function drawBranch(startX, startY, length, angle, width, color) {
     const endY = startY + length * Math.sin(angle);
     ctx.lineTo(endX, endY);
     ctx.stroke();
-    
-    ctx.restore(); // Restore to remove shadow for next branches
 
-    // Place blossoms along the branch
-    if (length > 20 && blossoms.length < NUM_BLOSSOMS) {
+    // Add a blossom at the end of each significant branch
+    if (blossoms.length < NUM_BLOSSOMS) {
          blossoms.push(new Blossom(endX, endY));
     }
     
-    if (length < 15) return; // Stop branching when branches are too short
+    if (length < 20) return; // Stop branching on small twigs
 
-    // Create 2 to 3 new branches
-    const newBranches = random(2, 3);
-    for (let i = 0; i < newBranches; i++) {
-        let newAngle = angle + random(-0.4, 0.4); // Control branch spread
-        let newLength = length * random(0.7, 0.85);
-        let newWidth = width * 0.7;
-        drawBranch(endX, endY, newLength, newAngle, newWidth, color);
+    // Simplified branching for clarity and performance
+    const newLength = length * 0.8;
+    const newWidth = width * 0.75;
+
+    // First branch continues mostly straight
+    drawBranch(endX, endY, newLength, angle + random(-0.1, 0.1), newWidth, color);
+    
+    // Add an occasional side branch
+    if(Math.random() < 0.6) {
+        drawBranch(endX, endY, newLength * 0.8, angle + random(0.3, 0.6), newWidth * 0.8, color);
+    }
+    if(Math.random() < 0.6) {
+        drawBranch(endX, endY, newLength * 0.8, angle - random(0.3, 0.6), newWidth * 0.8, color);
     }
 }
 
@@ -183,14 +182,14 @@ function drawBranch(startX, startY, length, angle, width, color) {
  * Main animation loop.
  */
 function animate() {
-    // A slightly less transparent background to make trails shorter
-    ctx.fillStyle = 'rgba(255, 240, 245, 0.3)';
+    // Optimized clearing: Only clear once.
+    ctx.fillStyle = 'rgba(255, 240, 245, 0.4)'; // Slightly more opaque for shorter trails
     ctx.fillRect(0, 0, width, height);
     
-    // Step 1: Draw the branch and let blossoms grow
+    // Step 1: Draw the tree and let blossoms grow
     if (!branchDrawn) {
-        // Start from bottom-center for a more prominent tree
-        drawBranch(width / 2, height, height * 0.2, -Math.PI / 2, 25, '#664229');
+        // Thicker, taller, and more central tree trunk for visibility
+        drawBranch(width / 2, height, height * 0.35, -Math.PI / 2, 35, '#5C4033'); // Darker brown
         branchDrawn = true;
     }
 
@@ -203,7 +202,7 @@ function animate() {
         }
     });
     
-    // Step 2: Once blossoms are grown, show the prompt and create plums
+    // Step 2: Show prompt and create plums once all blossoms are grown
     if (allGrown && !messagePrompt.classList.contains('visible') && plums.length === 0) {
         messagePrompt.classList.add('visible');
         blossoms.forEach(b => {
@@ -211,7 +210,7 @@ function animate() {
         });
     }
     
-    // Step 3: Animate plums indefinitely
+    // Step 3: Animate plums
     if (plums.length > 0) {
         plums.forEach(plum => {
             plum.update();
