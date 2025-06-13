@@ -122,7 +122,8 @@ class Blossom {
         this.size = 0;
         this.growthRate = random(0.15, 0.3);
         this.isGrown = false;
-        this.color = `rgba(255, 192, 203, ${random(0.7, 1)})`;
+        // FIXED: Use the same color logic as the falling plums for a perfect match.
+        this.color = `hsl(${random(310, 350)}, 85%, 70%)`; // Slightly lighter for visual distinction
         this.centerColor = '#FFFDD0';
     }
 
