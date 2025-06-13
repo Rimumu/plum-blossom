@@ -120,30 +120,24 @@ body, html {
 
 /* UPDATED: Start Button Styles */
 #start-button {
-    /* A softer, more thematic gradient background */
     background: linear-gradient(145deg, #f87c9d, #e25c6e);
     border: none;
     border-radius: 50%;
-    /* Made the button slightly larger */
     width: 90px;
     height: 90px;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* Enhanced shadow for a "softer" look and more depth */
+    /* Set position to relative to act as a container for the absolute-positioned SVG */
+    position: relative;
     box-shadow: 0 8px 25px rgba(226, 92, 110, 0.35),
                 inset 0 -4px 10px rgba(0,0,0,0.1);
     opacity: 0;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-    /* The original entry and pulse animation is great and remains */
     animation:
         button-bounce-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.8s,
         pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.6s;
 }
 
 #start-button:hover {
-    /* Adjusted hover effect for the new size and shadow */
     transform: scale(1.1);
     box-shadow: 0 12px 35px rgba(226, 92, 110, 0.5),
                 inset 0 -4px 10px rgba(0,0,0,0.1);
@@ -151,12 +145,23 @@ body, html {
 }
 
 #start-button svg {
-    /* Made the icon significantly larger to fill the button */
     width: 60px;
     height: 60px;
     color: white;
-    /* Added a subtle drop shadow to the icon itself to make it pop */
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    
+    /* --- FORCEFUL CENTERING LOGIC --- */
+    /* Position the SVG absolutely within the button */
+    position: absolute;
+    /* Set its starting point to the center of the button */
+    top: 50%;
+    left: 50%;
+    /*
+      Translate the icon back by half of its own size to perfectly center it.
+      I've used -52% on the Y-axis to slightly shift the heart *up*,
+      counteracting the optical illusion that makes it look too low.
+    */
+    transform: translate(-50%, -52%);
 }
 
 /* Keyframe animation for the button pulse */
