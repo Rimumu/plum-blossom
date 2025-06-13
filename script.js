@@ -12,12 +12,16 @@ const messagePrompt = document.getElementById('message-prompt');
 
 
 // --- Animation State & Tuning ---
-let treeInitialized = false; // Renamed for clarity
+let treeInitialized = false;
 let blossoms = [];
 let plums = [];
 let treeBranches = [];
 const NUM_BLOSSOMS = 260;
 let trailPlums = [];
+// NEW: State for spacing out the trail particles
+let lastTrailX = -1;
+let lastTrailY = -1;
+const MIN_TRAIL_SPACING = 30; // Min pixels the mouse must move to create a new flower
 
 
 // --- Landing Page Text Animation ---
@@ -46,13 +50,25 @@ startButton.addEventListener('click', () => {
     landingPage.classList.add('hidden');
     setTimeout(() => {
         mainContent.classList.add('visible');
-        startTreeAnimation(); // Changed function name
+        startTreeAnimation();
     }, 800);
 });
 
-// UPDATED: This listener is now always active
+// UPDATED: This listener is now "throttled" to space out the trail
 window.addEventListener('mousemove', (e) => {
-    trailPlums.push(new TrailPlum(e.clientX, e.clientY));
+    const currentX = e.clientX;
+    const currentY = e.clientY;
+
+    const dx = currentX - lastTrailX;
+    const dy = currentY - lastTrailY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Only add a new flower if the mouse has moved enough distance
+    if (distance > MIN_TRAIL_SPACING || lastTrailX === -1) {
+        trailPlums.push(new TrailPlum(currentX, currentY));
+        lastTrailX = currentX;
+        lastTrailY = currentY;
+    }
 });
 
 
@@ -63,18 +79,18 @@ function random(min, max) {
 
 // --- Classes for Animation Objects ---
 
-// UPDATED: Trail particles are now flowers
+// UPDATED: Trail particles are now smaller
 class TrailPlum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = random(12, 18);
+        this.size = random(5, 10); // Reduced size range for smaller flowers
         this.opacity = 1;
         this.color = `hsl(${random(310, 350)}, 85%, 72%)`;
-        this.centerColor = '#FFFDD0'; // Color for the flower center
+        this.centerColor = '#FFFDD0';
         this.rotation = random(0, Math.PI * 2);
         this.fadeRate = 0.03;
-        this.shrinkRate = 0.2;
+        this.shrinkRate = 0.15; // Adjusted shrink rate for smaller size
     }
 
     update() {
@@ -89,7 +105,6 @@ class TrailPlum {
         ctx.globalAlpha = this.opacity;
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
-        // Drawing logic copied from the Blossom class
         for (let i = 0; i < 5; i++) {
             ctx.rotate(Math.PI * 2 / 5);
             ctx.beginPath();
@@ -106,7 +121,7 @@ class TrailPlum {
 }
 
 
-class Plum { // This is for the falling plums from the tree
+class Plum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -160,7 +175,7 @@ class Plum { // This is for the falling plums from the tree
     }
 }
 
-class Blossom { // This is for the blossoms on the tree
+class Blossom {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -226,14 +241,11 @@ function drawTree(branchesArray, color) {
 }
 
 function animate() {
-    // This creates the nice fading trail effect
     ctx.fillStyle = 'rgba(255, 240, 245, 0.4)';
     ctx.fillRect(0, 0, width, height);
     
-    // This logic now only runs after the start button is clicked
     if (treeInitialized) {
         drawTree(treeBranches, '#5C4033');
-
         let allGrown = true;
         blossoms.forEach(blossom => {
             blossom.update();
@@ -256,7 +268,6 @@ function animate() {
         }
     }
 
-    // The cursor trail is always drawn
     for (let i = trailPlums.length - 1; i >= 0; i--) {
         const p = trailPlums[i];
         p.update();
@@ -269,15 +280,13 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// This function now just "activates" the tree drawing
 function startTreeAnimation() {
-    if (treeInitialized) return; // Prevent it from running twice
+    if (treeInitialized) return;
     generateTree(width / 2, height, height * 0.35, -Math.PI / 2, 30, treeBranches);
     populateBlossoms(treeBranches, blossoms);
     treeInitialized = true;
 }
 
-// This main init function runs as soon as the script loads
 function init() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
@@ -285,7 +294,6 @@ function init() {
     window.addEventListener('resize', () => {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-        // Reset tree but not the trail
         treeInitialized = false;
         blossoms = [];
         plums = [];
@@ -293,9 +301,7 @@ function init() {
         ctx.clearRect(0, 0, width, height); 
     });
 
-    // Start the animation loop immediately
     animate();
 }
 
-// Run the initialization
 init();
