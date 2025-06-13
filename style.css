@@ -66,6 +66,18 @@ body, html {
     }
 }
 
+/* NEW: Entry animation for the start button */
+@keyframes button-bounce-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* UPDATED: Start Button Styles */
 #start-button {
     background: #E25C6E;
@@ -79,8 +91,12 @@ body, html {
     justify-content: center;
     align-items: center;
     box-shadow: 0 5px 20px rgba(226, 92, 110, 0.4);
-    /* NEW: Apply the pulse animation */
-    animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    /* Set initial state for its entry animation */
+    opacity: 0;
+    /* UPDATED: Chained animations - one for entry, one for pulsing */
+    animation: 
+        button-bounce-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.5s,
+        pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.3s;
 }
 
 #start-button:hover {
