@@ -9,22 +9,22 @@ const messagePrompt = document.getElementById('message-prompt');
 const heartButton = document.getElementById('heart-button');
 const finalMessage = document.getElementById('final-message');
 
-// --- Animation State & Performance Tuning ---
-let branchDrawn = false;
+// --- Animation State & Tuning ---
+let isInitialized = false;
 let blossoms = [];
 let plums = [];
 let treeBranches = []; // Array to store the tree structure
-const NUM_BLOSSOMS = 70; // Increased for a fuller tree
+const NUM_BLOSSOMS = 70; // Set to a high number for a full tree
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
-    // Reset and redraw everything on resize
-    branchDrawn = false;
+    // Reset everything to re-initialize on resize
+    isInitialized = false;
     blossoms = [];
     plums = [];
-    treeBranches = []; // IMPORTANT: Reset the stored tree structure
+    treeBranches = [];
     ctx.clearRect(0, 0, width, height); 
 });
 
@@ -32,7 +32,7 @@ heartButton.addEventListener('click', () => {
     messagePrompt.classList.remove('visible');
     setTimeout(() => {
         finalMessage.classList.add('visible');
-    }, 500); // Delay to allow prompt to fade out
+    }, 500); // Delay for fade-out
 });
 
 // --- Helper Functions ---
@@ -42,17 +42,13 @@ function random(min, max) {
 
 // --- Classes for Animation Objects ---
 
-/**
- * Represents a single plum particle floating on the screen.
- * Physics tweaked for a softer feel.
- */
 class Plum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
         this.size = random(3, 7);
         this.color = `hsl(${random(310, 350)}, 85%, 68%)`;
-        this.vx = random(-0.1, 0.1);
+        this.vx = random(-0.2, 0.2);
         this.vy = random(0.2, 0.6);
         this.gravity = 0.01;
         this.wind = 0;
@@ -76,7 +72,7 @@ class Plum {
             this.x = random(0, width);
             this.y = -this.size;
             this.life = 0;
-            this.vx = random(-0.1, 0.1);
+            this.vx = random(-0.2, 0.2);
             this.vy = random(0.2, 0.6);
             this.wind = 0;
         }
@@ -90,14 +86,11 @@ class Plum {
     }
 }
 
-/**
- * Represents a single blooming blossom. (No changes)
- */
 class Blossom {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.maxSize = random(12, 22);
+        this.maxSize = random(10, 20); // Slightly smaller for a denser look
         this.size = 0;
         this.growthRate = random(0.15, 0.3);
         this.isGrown = false;
@@ -131,48 +124,50 @@ class Blossom {
     }
 }
 
+// --- CORE LOGIC: REBUILT ---
+
 /**
- * REWORKED: Generates tree structure and GUARANTEES blossoms are placed at the tip of branches.
- * This function runs only ONCE.
+ * Step 1: Recursively generates the tree structure and stores it.
  */
-function generateTree(startX, startY, length, angle, width, branchesArray, blossomsArray) {
-    // Base case: stop recursion if branches get too small.
-    if (length < 15) {
-        return;
-    }
+function generateTree(startX, startY, length, angle, width, branchesArray) {
+    if (width < 1) return; // Stop when branches are too thin
 
     const endX = startX + length * Math.cos(angle);
     const endY = startY + length * Math.sin(angle);
-
-    // Store the branch segment to be drawn later
     branchesArray.push({ sx: startX, sy: startY, ex: endX, ey: endY, w: width });
 
-    // FIXED LOGIC: Add a blossom at the tip of this new branch.
-    if (blossomsArray.length < NUM_BLOSSOMS) {
-        blossomsArray.push(new Blossom(endX, endY));
-    }
-    
-    // Recursive calls to create the rest of the tree
-    const newLength = length * 0.8;
+    const newLength = length * 0.85;
     const newWidth = width * 0.75;
-    
-    // Create the next main branch segment
-    generateTree(endX, endY, newLength, angle + random(-0.2, 0.2), newWidth, branchesArray, blossomsArray);
+
+    // Create a main continuing branch
+    generateTree(endX, endY, newLength, angle + random(-0.2, 0.2), newWidth, branchesArray);
     
     // Create side branches
-    if (length > 30) { // Only fork from larger branches
-        if (Math.random() < 0.7) {
-            generateTree(endX, endY, newLength * 0.8, angle + random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
-        }
-        if (Math.random() < 0.7) {
-            generateTree(endX, endY, newLength * 0.8, angle - random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
-        }
+    if (width > 10 && Math.random() < 0.8) {
+        generateTree(endX, endY, newLength * 0.7, angle + random(0.3, 0.8), newWidth, branchesArray);
+    }
+    if (width > 10 && Math.random() < 0.8) {
+        generateTree(endX, endY, newLength * 0.7, angle - random(0.3, 0.8), newWidth, branchesArray);
+    }
+}
+
+/**
+ * Step 2: Intelligently places blossoms ONLY on the thin outer branches.
+ */
+function populateBlossoms(branchesArray, blossomsArray) {
+    const thinBranches = branchesArray.filter(b => b.w < 4); // Filter for "twigs"
+    if (thinBranches.length === 0) return;
+
+    for (let i = 0; i < NUM_BLOSSOMS; i++) {
+        const randomBranch = thinBranches[Math.floor(Math.random() * thinBranches.length)];
+        // Add a blossom at the tip (end point) of the randomly chosen thin branch
+        blossomsArray.push(new Blossom(randomBranch.ex, randomBranch.ey));
     }
 }
 
 
 /**
- * Draws the tree from the stored branches array. This runs EVERY frame.
+ * Draws the stored tree structure.
  */
 function drawTree(branchesArray, color) {
     ctx.strokeStyle = color;
@@ -186,7 +181,6 @@ function drawTree(branchesArray, color) {
     });
 }
 
-
 /**
  * Main animation loop
  */
@@ -194,16 +188,17 @@ function animate() {
     ctx.fillStyle = 'rgba(255, 240, 245, 0.4)';
     ctx.fillRect(0, 0, width, height);
     
-    // Step 1: Generate the tree structure and blossoms ONCE.
-    if (!branchDrawn) {
-        generateTree(width / 2, height, height * 0.35, -Math.PI / 2, 35, treeBranches, blossoms);
-        branchDrawn = true;
+    // One-time initialization
+    if (!isInitialized) {
+        generateTree(width / 2, height, height * 0.35, -Math.PI / 2, 30, treeBranches);
+        populateBlossoms(treeBranches, blossoms);
+        isInitialized = true;
     }
 
-    // Step 2: Redraw the stored tree every frame so it's always visible.
+    // Always draw the tree
     drawTree(treeBranches, '#5C4033');
 
-    // Step 3: Animate blossoms (which were generated once).
+    // Update and draw blossoms
     let allGrown = true;
     blossoms.forEach(blossom => {
         blossom.update();
@@ -213,15 +208,15 @@ function animate() {
         }
     });
     
-    // Step 4: Show prompt and create plums once all blossoms are grown
-    if (allGrown && !messagePrompt.classList.contains('visible') && plums.length === 0) {
+    // Check state to create plums ONCE
+    if (allGrown && plums.length === 0 && blossoms.length > 0) {
         messagePrompt.classList.add('visible');
         blossoms.forEach(b => {
             plums.push(new Plum(b.x, b.y));
         });
     }
     
-    // Step 5: Animate plums
+    // Animate plums if they exist
     if (plums.length > 0) {
         plums.forEach(plum => {
             plum.update();
