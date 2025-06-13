@@ -46,7 +46,7 @@ class Plum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = random(3, 7);
+        this.size = random(4, 8); // This is now the major radius of the ellipse
         this.color = `hsl(${random(310, 350)}, 85%, 68%)`;
         this.vx = random(-0.2, 0.2);
         this.vy = random(0.2, 0.6);
@@ -55,6 +55,9 @@ class Plum {
         this.drag = 0.99;
         this.life = 0;
         this.driftLife = random(80, 150);
+        // NEW: Properties for rotation to make petals tumble
+        this.rotation = random(0, Math.PI * 2);
+        this.rotationSpeed = random(-0.02, 0.02);
     }
 
     update() {
@@ -67,6 +70,9 @@ class Plum {
         this.vx *= this.drag;
         this.x += this.vx;
         this.y += this.vy;
+
+        // NEW: Update the petal's rotation each frame
+        this.rotation += this.rotationSpeed;
 
         // FIXED LOGIC: When a plum goes off screen...
         if (this.y > height + this.size) {
@@ -90,10 +96,21 @@ class Plum {
     }
 
     draw() {
+        ctx.save();
+        // Move the canvas origin to the petal's position and rotate it
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        // Draw an ellipse for a petal shape.
+        // The drawing is now relative to (0,0) because of the translation.
+        ctx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
+        
         ctx.fillStyle = this.color;
         ctx.fill();
+        
+        // Restore the canvas to its original state for the next drawing
+        ctx.restore();
     }
 }
 
