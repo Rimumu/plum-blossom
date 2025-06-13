@@ -17,6 +17,9 @@ let blossoms = [];
 let plums = [];
 let treeBranches = [];
 const NUM_BLOSSOMS = 260;
+// NEW: Array to hold the cursor trail particles
+let trailPlums = [];
+
 
 // --- Landing Page Text Animation ---
 const titleText = "Happy 15 monthiversary sayang!!!";
@@ -29,13 +32,10 @@ titleText.split('').forEach((char, index) => {
     titleSpans.push(span);
 });
 
-// After the initial animation, apply the infinite wave animation
-const initialAnimationDuration = (titleSpans.length * 0.05) + 0.6; // delay of last letter + animation duration
+const initialAnimationDuration = (titleSpans.length * 0.05) + 0.6;
 setTimeout(() => {
     titleSpans.forEach((span, index) => {
-        // FIXED: Explicitly set opacity to 1 to prevent text from disappearing
-        span.style.opacity = '1'; 
-        // We set the animation property directly to override the initial one
+        span.style.opacity = '1';
         span.style.animation = `wave 2s infinite ease-in-out`;
         span.style.animationDelay = `${index * 0.07}s`;
     });
@@ -44,14 +44,19 @@ setTimeout(() => {
 
 // --- Event Listeners ---
 startButton.addEventListener('click', () => {
-    // Hide the landing page
     landingPage.classList.add('hidden');
-    
-    // Show and start the main animation after the fade-out
     setTimeout(() => {
         mainContent.classList.add('visible');
         startMainAnimation();
-    }, 800); // Match this to CSS transition duration
+    }, 800);
+});
+
+// NEW: Event listener for the mouse trail
+window.addEventListener('mousemove', (e) => {
+    // Only create a trail when the main animation is visible
+    if (mainContent.classList.contains('visible')) {
+        trailPlums.push(new TrailPlum(e.clientX, e.clientY));
+    }
 });
 
 
@@ -61,6 +66,41 @@ function random(min, max) {
 }
 
 // --- Classes for Animation Objects ---
+
+// NEW: A dedicated class for the trail particles for a smooth effect
+class TrailPlum {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = random(10, 16);
+        this.opacity = 1;
+        this.color = `hsl(${random(310, 350)}, 85%, 72%)`;
+        this.rotation = random(0, Math.PI * 2);
+        // These values control how fast the plums fade and shrink
+        this.fadeRate = 0.03;
+        this.shrinkRate = 0.2;
+    }
+
+    update() {
+        this.size -= this.shrinkRate;
+        this.opacity -= this.fadeRate;
+        if (this.size < 0) this.size = 0;
+        if (this.opacity < 0) this.opacity = 0;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
 
 class Plum {
     constructor(x, y) {
@@ -229,6 +269,17 @@ function animate() {
             plum.update();
             plum.draw();
         });
+    }
+
+    // NEW: This loop updates and draws the trail particles
+    for (let i = trailPlums.length - 1; i >= 0; i--) {
+        const p = trailPlums[i];
+        p.update();
+        p.draw();
+        // This removes the plums once they are invisible
+        if (p.opacity <= 0) {
+            trailPlums.splice(i, 1);
+        }
     }
 
     requestAnimationFrame(animate);
