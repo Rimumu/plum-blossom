@@ -20,9 +20,18 @@
             font-family: 'Playfair Display', serif;
         }
 
-        /* --- NEW: Landing Page Styles --- */
+        /* --- NEW: Canvas is now a background element --- */
+        #animation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0; /* Sits behind UI but above background */
+            pointer-events: none; /* Allows clicks to pass through */
+        }
+
+        /* --- Landing Page Styles --- */
         #landing-page {
-            position: absolute;
+            position: relative; /* Changed from absolute */
             width: 100%;
             height: 100%;
             display: flex;
@@ -39,7 +48,6 @@
             pointer-events: none;
         }
 
-        /* ADDED: Styles for the new picture */
         #her-picture {
             width: 150px;
             height: 150px;
@@ -54,27 +62,14 @@
         }
 
         @keyframes photo-fade-in {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         @keyframes photo-pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
-            }
-            50% {
-                transform: scale(1.03);
-                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-            }
+            0%, 100% { transform: scale(1); box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1); }
+            50% { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); }
         }
-
 
         #landing-title {
             font-family: 'Dancing Script', cursive;
@@ -92,37 +87,21 @@
         }
 
         @keyframes bounce-in {
-            0% {
-                opacity: 0;
-                transform: scale(0.3) translateY(40px);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            0% { opacity: 0; transform: scale(0.3) translateY(40px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         @keyframes wave {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-6px);
-            }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
         }
 
         @keyframes button-bounce-in {
-            0% {
-                opacity: 0;
-                transform: scale(0.3);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            0% { opacity: 0; transform: scale(0.3); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
-        /* --- DEFINITIVE HEART BUTTON FIX --- */
+        /* --- Heart Button Styles --- */
         #start-button {
             background: transparent;
             border: none;
@@ -148,36 +127,24 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                filter: drop-shadow(0 8px 25px rgba(226, 92, 110, 0.5));
-            }
-            50% {
-                transform: scale(1.08);
-                filter: drop-shadow(0 12px 30px rgba(226, 92, 110, 0.7));
-            }
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 8px 25px rgba(226, 92, 110, 0.5)); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 12px 30px rgba(226, 92, 110, 0.7)); }
         }
 
         /* --- Main Animation Content --- */
         #main-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.8s ease-in-out;
-        }
-
-        #main-content.visible {
-            opacity: 1;
-        }
-
-        #animation-canvas {
-            position: absolute;
+            position: fixed; /* Changed from relative */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            pointer-events: none; /* Content here shouldn't be interactive initially */
+        }
+
+        #main-content.visible {
+            opacity: 1;
         }
 
         .overlay {
@@ -190,7 +157,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2;
-            pointer-events: none;
         }
 
         #message-prompt {
@@ -223,22 +189,16 @@
 
         /* --- Responsive Styles --- */
         @media (max-width: 600px) {
-            #her-picture {
-                width: 120px;
-                height: 120px;
-            }
-            #landing-title {
-                font-size: 3rem;
-            }
-            #message-prompt p {
-                font-size: 1rem;
-            }
+            #her-picture { width: 120px; height: 120px; }
+            #landing-title { font-size: 3rem; }
+            #message-prompt p { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
+    <canvas id="animation-canvas"></canvas>
 
-    <div id="landing-page" class="visible">
+    <div id="landing-page">
         <img src="her.jpg" alt="A picture of you" id="her-picture">
         <h1 id="landing-title"></h1>
         <button id="start-button" aria-label="Start Animation">
@@ -249,7 +209,6 @@
     </div>
 
     <div id="main-content">
-        <canvas id="animation-canvas"></canvas>
         <div class="overlay">
             <div id="message-prompt">
                 <p>"Our love is like these plum blossoms because it will keep blooming for eternity and remain everlasting."</p>
