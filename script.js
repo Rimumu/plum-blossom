@@ -14,7 +14,7 @@ let isInitialized = false;
 let blossoms = [];
 let plums = [];
 let treeBranches = []; // Array to store the tree structure
-const NUM_BLOSSOMS = 110; // Increased for a fuller, more natural look
+const NUM_BLOSSOMS = 210; // Increased for a fuller, more natural look
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
