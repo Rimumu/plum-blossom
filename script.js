@@ -29,10 +29,12 @@ titleText.split('').forEach((char, index) => {
     titleSpans.push(span);
 });
 
-// NEW: After the initial animation, apply the infinite wave animation
+// After the initial animation, apply the infinite wave animation
 const initialAnimationDuration = (titleSpans.length * 0.05) + 0.6; // delay of last letter + animation duration
 setTimeout(() => {
     titleSpans.forEach((span, index) => {
+        // FIXED: Explicitly set opacity to 1 to prevent text from disappearing
+        span.style.opacity = '1'; 
         // We set the animation property directly to override the initial one
         span.style.animation = `wave 2s infinite ease-in-out`;
         span.style.animationDelay = `${index * 0.07}s`;
