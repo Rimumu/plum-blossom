@@ -137,45 +137,55 @@ body, html {
         pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.6s;
 }
 
-#start-button:hover {
+/* UPDATED: Start Button Styles */
+#start-button {
+    /* This makes the original button container invisible and removes its space */
+    background: transparent;
+    border: none;
+    padding: 0;
+    /* The button still needs to handle the initial fade-in animation */
+    opacity: 0;
+    animation: button-bounce-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.8s;
+}
+
+/* The SVG is now styled to BE the button */
+#start-button svg {
+    width: 100px;
+    height: 100px;
+    fill: #E25C6E; /* Fills the heart with a vibrant pink */
+    cursor: pointer;
+    /*
+      drop-shadow is used instead of box-shadow because it perfectly traces
+      the shape of the heart, giving it a beautiful, clean shadow.
+    */
+    filter: drop-shadow(0 6px 15px rgba(226, 92, 110, 0.5));
+    transition: transform 0.2s ease-out, filter 0.2s ease-out;
+    
+    /* The pulse animation is now applied directly to the heart shape */
+    animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.6s;
+}
+
+/* The hover effect is now also applied directly to the SVG heart */
+#start-button:hover svg {
+    filter: drop-shadow(0 10px 25px rgba(226, 92, 110, 0.6));
     transform: scale(1.1);
-    box-shadow: 0 12px 35px rgba(226, 92, 110, 0.5),
-                inset 0 -4px 10px rgba(0,0,0,0.1);
+    /* Pausing the pulse on hover makes the interaction feel more responsive */
     animation-play-state: paused;
 }
 
-#start-button svg {
-    width: 60px;
-    height: 60px;
-    color: white;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
-    
-    /* --- FORCEFUL CENTERING LOGIC --- */
-    /* Position the SVG absolutely within the button */
-    position: absolute;
-    /* Set its starting point to the center of the button */
-    top: 50%;
-    left: 50%;
-    /*
-      Translate the icon back by half of its own size to perfectly center it.
-      I've used -52% on the Y-axis to slightly shift the heart *up*,
-      counteracting the optical illusion that makes it look too low.
-    */
-    transform: translate(-50%, -52%);
-}
-
-/* Keyframe animation for the button pulse */
+/* The keyframe animation is updated to animate the 'filter' and 'transform'
+  properties of the SVG, instead of the old box-shadow.
+*/
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
-        box-shadow: 0 5px 20px rgba(226, 92, 110, 0.4);
+        filter: drop-shadow(0 6px 15px rgba(226, 92, 110, 0.5));
     }
     50% {
         transform: scale(1.08);
-        box-shadow: 0 8px 25px rgba(226, 92, 110, 0.6);
+        filter: drop-shadow(0 10px 20px rgba(226, 92, 110, 0.7));
     }
 }
-
 
 /* --- Main Animation Content --- */
 #main-content {
