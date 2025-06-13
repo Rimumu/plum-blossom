@@ -130,12 +130,13 @@ body, html {
 
 /* The SVG is now styled to BE the button */
 #start-button svg {
-    width: 100px;
-    height: 100px;
+    /* Heart is now 50% larger */
+    width: 150px;
+    height: 150px;
     fill: #E25C6E; /* Fills the heart with a vibrant pink */
     cursor: pointer;
-    /* drop-shadow traces the heart shape perfectly */
-    filter: drop-shadow(0 6px 15px rgba(226, 92, 110, 0.5));
+    /* Shadow adjusted for the new, larger size */
+    filter: drop-shadow(0 8px 25px rgba(226, 92, 110, 0.5));
     transition: transform 0.2s ease-out, filter 0.2s ease-out;
 
     /* The pulse animation is now applied directly to the heart shape */
@@ -144,7 +145,8 @@ body, html {
 
 /* The hover effect is now also applied directly to the SVG heart */
 #start-button:hover svg {
-    filter: drop-shadow(0 10px 25px rgba(226, 92, 110, 0.6));
+    /* Shadow adjusted for the new, larger size */
+    filter: drop-shadow(0 12px 35px rgba(226, 92, 110, 0.6));
     transform: scale(1.1);
     /* Pausing the pulse on hover makes the interaction feel more responsive */
     animation-play-state: paused;
@@ -154,11 +156,13 @@ body, html {
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
-        filter: drop-shadow(0 6px 15px rgba(226, 92, 110, 0.5));
+        /* Shadow adjusted for the new, larger size */
+        filter: drop-shadow(0 8px 25px rgba(226, 92, 110, 0.5));
     }
     50% {
         transform: scale(1.08);
-        filter: drop-shadow(0 10px 20px rgba(226, 92, 110, 0.7));
+        /* Shadow adjusted for the new, larger size */
+        filter: drop-shadow(0 12px 30px rgba(226, 92, 110, 0.7));
     }
 }
 
@@ -234,7 +238,7 @@ body, html {
         height: 120px;
     }
     #landing-title {
-        font-.size: 3rem;
+        font-size: 3rem;
     }
     #message-prompt p {
         font-size: 1rem;
