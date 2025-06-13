@@ -13,12 +13,17 @@ const finalMessage = document.getElementById('final-message');
 let branchDrawn = false;
 let blossoms = [];
 let plums = [];
-const NUM_BLOSSOMS = 30;
+const NUM_BLOSSOMS = 40; // Increased blossom count for a fuller tree
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
+    // Reset and redraw on resize for responsiveness
+    branchDrawn = false;
+    blossoms = [];
+    plums = [];
+    ctx.clearRect(0, 0, width, height); 
 });
 
 heartButton.addEventListener('click', () => {
@@ -37,36 +42,41 @@ function random(min, max) {
 
 /**
  * Represents a single plum particle floating on the screen.
+ * Now with more varied movement to reduce overlapping.
  */
 class Plum {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.size = random(4, 8);
-        this.color = `hsl(${random(300, 340)}, 80%, 60%)`; // Shades of pink/magenta
-        this.vx = random(-0.5, 0.5);
-        this.vy = random(0.5, 1.5); // Initial downward velocity
-        this.gravity = 0.01;
-        this.wind = random(-0.1, 0.1);
+        // Start with a bit of random offset from the blossom position
+        this.x = x + random(-10, 10);
+        this.y = y + random(-10, 10);
+        this.size = random(3, 7);
+        this.color = `hsl(${random(300, 340)}, 85%, 65%)`; // Slightly brighter
+        this.vx = random(-0.8, 0.8); // Increased horizontal velocity range
+        this.vy = random(0.5, 1.5);
+        this.gravity = 0.02;
+        this.wind = random(-0.2, 0.2); // More noticeable wind
+        this.drag = 0.99; // Air resistance
     }
 
     update() {
         this.vy += this.gravity;
         this.vx += this.wind;
+        
+        this.vx *= this.drag; // Apply air resistance
 
-        // Simple wind change
-        if (Math.random() < 0.05) {
-            this.wind = random(-0.1, 0.1);
+        // Randomly change wind direction for more chaotic movement
+        if (Math.random() < 0.02) {
+            this.wind = random(-0.2, 0.2);
         }
 
         this.x += this.vx;
         this.y += this.vy;
 
-        // Reset particle if it goes off-screen
-        if (this.y > height + this.size || this.x < -this.size || this.x > width + this.size) {
+        // Reset particle if it goes far off-screen
+        if (this.y > height + 20 || this.x < -20 || this.x > width + 20) {
             this.x = random(0, width);
-            this.y = -this.size;
-            this.vx = random(-0.5, 0.5);
+            this.y = -this.size; // Start from the top
+            this.vx = random(-0.8, 0.8);
             this.vy = random(0.5, 1.5);
         }
     }
@@ -86,11 +96,11 @@ class Blossom {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.maxSize = random(15, 25);
+        this.maxSize = random(12, 22); // Slightly smaller max size for a delicate look
         this.size = 0;
-        this.growthRate = random(0.1, 0.3);
+        this.growthRate = random(0.1, 0.25);
         this.isGrown = false;
-        this.color = `rgba(255, 192, 203, ${random(0.7, 1)})`; // Pink
+        this.color = `rgba(255, 192, 203, ${random(0.6, 1)})`; // Pink
         this.centerColor = '#FFFDD0'; // Cream
     }
 
@@ -126,12 +136,13 @@ class Blossom {
 }
 
 /**
- * Draws the main branch of the plum tree.
+ * Draws a more realistic tree with organic branches.
  */
 function drawBranch(startX, startY, length, angle, width, color) {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     
+    // Calculate the end of the branch
     const endX = startX + length * Math.cos(angle);
     const endY = startY + length * Math.sin(angle);
     
@@ -141,39 +152,49 @@ function drawBranch(startX, startY, length, angle, width, color) {
     ctx.lineCap = 'round';
     ctx.stroke();
 
-    // Add blossoms to the branch points
-    if (blossoms.length < NUM_BLOSSOMS) {
-         blossoms.push(new Blossom(endX, endY));
+    // Place blossoms along the branch, not just at the end
+    if (Math.random() > 0.6 && blossoms.length < NUM_BLOSSOMS) {
+        const blossomX = startX + random(0.3, 0.7) * length * Math.cos(angle);
+        const blossomY = startY + random(0.3, 0.7) * length * Math.sin(angle);
+        blossoms.push(new Blossom(blossomX, blossomY));
     }
 
-    // Recursive branching
-    if (length > 20) {
-        // Main branch continues
-        drawBranch(endX, endY, length * random(0.8, 0.9), angle + random(-0.2, 0.2), width * 0.7, color);
-        
-        // Occasional side branch
-        if (Math.random() < 0.4) {
-            drawBranch(endX, endY, length * random(0.5, 0.7), angle + random(0.5, 1), width * 0.6, color);
+    // Stop branching when branches get too small
+    if (length < 10) {
+        // Add a blossom at the very tip of the smallest branches
+        if (blossoms.length < NUM_BLOSSOMS) {
+            blossoms.push(new Blossom(endX, endY));
         }
-         if (Math.random() < 0.4) {
-            drawBranch(endX, endY, length * random(0.5, 0.7), angle - random(0.5, 1), width * 0.6, color);
-        }
+        return;
+    }
+
+    // Recursively draw more branches
+    const newLength = length * random(0.75, 0.9);
+    const newWidth = width * 0.75;
+
+    // Create 1 to 3 new branches
+    const branches = Math.floor(random(1, 4));
+    for (let i = 0; i < branches; i++) {
+        const newAngle = angle + random(-0.5, 0.5); // More varied angle
+        drawBranch(endX, endY, newLength, newAngle, newWidth, color);
     }
 }
+
 
 /**
  * Main animation loop.
  */
 function animate() {
     // Clear canvas with a semi-transparent fill for a trailing effect
-    ctx.fillStyle = 'rgba(255, 240, 245, 0.2)';
+    ctx.fillStyle = 'rgba(255, 240, 245, 0.25)';
     ctx.fillRect(0, 0, width, height);
     
     // --- DRAWING AND UPDATING ---
 
     // Step 1: Draw the branch and let blossoms grow
     if (!branchDrawn) {
-        drawBranch(width / 2 - 100, height, 120, -Math.PI / 2.5, 15, '#4A2311');
+        // Start tree from bottom left for a more natural look
+        drawBranch(50, height, height * 0.25, -Math.PI / 2.2, 20, '#5C4033');
         branchDrawn = true;
     }
 
@@ -187,7 +208,7 @@ function animate() {
     });
     
     // Step 2: Once blossoms are grown, show the prompt and create plums
-    if (allGrown && messagePrompt.style.opacity !== '1' && !messagePrompt.classList.contains('visible')) {
+    if (allGrown && !messagePrompt.classList.contains('visible') && plums.length === 0) {
         messagePrompt.classList.add('visible');
         // Initialize plums from blossom locations
         blossoms.forEach(b => {
