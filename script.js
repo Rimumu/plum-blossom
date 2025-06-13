@@ -132,44 +132,41 @@ class Blossom {
 }
 
 /**
- * REWORKED: Generates tree structure and places blossoms ON the branches.
+ * REWORKED: Generates tree structure and GUARANTEES blossoms are placed at the tip of branches.
  * This function runs only ONCE.
  */
 function generateTree(startX, startY, length, angle, width, branchesArray, blossomsArray) {
+    // Base case: stop recursion if branches get too small.
+    if (length < 15) {
+        return;
+    }
+
     const endX = startX + length * Math.cos(angle);
     const endY = startY + length * Math.sin(angle);
 
     // Store the branch segment to be drawn later
     branchesArray.push({ sx: startX, sy: startY, ex: endX, ey: endY, w: width });
 
-    // NEW LOGIC: Add blossoms along the branch, not just at the end.
-    if (blossomsArray.length < NUM_BLOSSOMS && length > 15 && Math.random() < 0.75) {
-        // Pick a random point along the current branch segment
-        const t = random(0.2, 1); // From 20% to 100% of the way along the branch
-        const blossomX = startX + t * (endX - startX);
-        const blossomY = startY + t * (endY - startY);
-        blossomsArray.push(new Blossom(blossomX, blossomY));
+    // FIXED LOGIC: Add a blossom at the tip of this new branch.
+    if (blossomsArray.length < NUM_BLOSSOMS) {
+        blossomsArray.push(new Blossom(endX, endY));
     }
-
-    // Stop recursion on smaller twigs
-    if (length < 20) {
-        // Add one final blossom at the tip of the smallest branches for a nice effect
-        if (blossomsArray.length < NUM_BLOSSOMS) {
-            blossomsArray.push(new Blossom(endX, endY));
-        }
-        return;
-    }
-
+    
+    // Recursive calls to create the rest of the tree
     const newLength = length * 0.8;
     const newWidth = width * 0.75;
     
-    // Recursive calls
+    // Create the next main branch segment
     generateTree(endX, endY, newLength, angle + random(-0.2, 0.2), newWidth, branchesArray, blossomsArray);
-    if (Math.random() < 0.7) {
-        generateTree(endX, endY, newLength * 0.9, angle + random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
-    }
-    if (Math.random() < 0.7) {
-        generateTree(endX, endY, newLength * 0.9, angle - random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
+    
+    // Create side branches
+    if (length > 30) { // Only fork from larger branches
+        if (Math.random() < 0.7) {
+            generateTree(endX, endY, newLength * 0.8, angle + random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
+        }
+        if (Math.random() < 0.7) {
+            generateTree(endX, endY, newLength * 0.8, angle - random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
+        }
     }
 }
 
