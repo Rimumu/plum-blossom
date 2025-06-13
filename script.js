@@ -221,10 +221,14 @@ function animate() {
         }
     });
     
+    // FIXED: Create fewer plums for a less crowded effect.
     if (allGrown && plums.length === 0 && blossoms.length > 0) {
         messagePrompt.classList.add('visible');
-        blossoms.forEach(b => {
-            plums.push(new Plum(b.x, b.y));
+        // A plum will be created for roughly every 3rd blossom.
+        blossoms.forEach((b, index) => {
+            if (index % 3 === 0) {
+                plums.push(new Plum(b.x, b.y));
+            }
         });
     }
     
