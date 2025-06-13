@@ -14,7 +14,7 @@ let isInitialized = false;
 let blossoms = [];
 let plums = [];
 let treeBranches = []; // Array to store the tree structure
-const NUM_BLOSSOMS = 260; // Increased for a fuller, more natural look
+const NUM_BLOSSOMS = 260; // Set to the desired amount for a very full tree
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
@@ -68,9 +68,20 @@ class Plum {
         this.x += this.vx;
         this.y += this.vy;
 
+        // FIXED LOGIC: When a plum goes off screen...
         if (this.y > height + this.size) {
-            this.x = random(0, width);
-            this.y = -this.size;
+            // ...reset it to the position of a random blossom on the tree.
+            if (blossoms.length > 0) {
+                const randomBlossom = blossoms[Math.floor(Math.random() * blossoms.length)];
+                this.x = randomBlossom.x;
+                this.y = randomBlossom.y;
+            } else {
+                // Fallback (should not be needed): reset to top of screen
+                this.x = random(0, width);
+                this.y = -this.size;
+            }
+
+            // Reset its physics properties for a new fall
             this.life = 0;
             this.vx = random(-0.2, 0.2);
             this.vy = random(0.2, 0.6);
