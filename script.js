@@ -48,14 +48,14 @@ class Plum {
         this.y = y;
         this.size = random(4, 8); // This is now the major radius of the ellipse
         this.color = `hsl(${random(310, 350)}, 85%, 68%)`;
-        this.vx = random(-0.2, 0.2);
-        this.vy = random(0.2, 0.6);
-        this.gravity = 0.01;
+        // FIXED: Adjusted for slower, more varied speeds
+        this.vx = random(-0.15, 0.15); // Gentle side-to-side drift
+        this.vy = random(0.1, 0.4);   // Slower initial downward speed with more variance
+        this.gravity = 0.008;         // Reduced gravity for a floatier effect
         this.wind = 0;
         this.drag = 0.99;
         this.life = 0;
         this.driftLife = random(80, 150);
-        // NEW: Properties for rotation to make petals tumble
         this.rotation = random(0, Math.PI * 2);
         this.rotationSpeed = random(-0.02, 0.02);
     }
@@ -71,45 +71,38 @@ class Plum {
         this.x += this.vx;
         this.y += this.vy;
 
-        // NEW: Update the petal's rotation each frame
         this.rotation += this.rotationSpeed;
 
-        // FIXED LOGIC: When a plum goes off screen...
         if (this.y > height + this.size) {
-            // ...reset it to the position of a random blossom on the tree.
             if (blossoms.length > 0) {
                 const randomBlossom = blossoms[Math.floor(Math.random() * blossoms.length)];
                 this.x = randomBlossom.x;
                 this.y = randomBlossom.y;
             } else {
-                // Fallback (should not be needed): reset to top of screen
                 this.x = random(0, width);
                 this.y = -this.size;
             }
 
             // Reset its physics properties for a new fall
             this.life = 0;
-            this.vx = random(-0.2, 0.2);
-            this.vy = random(0.2, 0.6);
+            // FIXED: Use the same slower, varied speed settings on reset
+            this.vx = random(-0.15, 0.15);
+            this.vy = random(0.1, 0.4);
             this.wind = 0;
         }
     }
 
     draw() {
         ctx.save();
-        // Move the canvas origin to the petal's position and rotate it
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
         
         ctx.beginPath();
-        // Draw an ellipse for a petal shape.
-        // The drawing is now relative to (0,0) because of the translation.
         ctx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
         
         ctx.fillStyle = this.color;
         ctx.fill();
         
-        // Restore the canvas to its original state for the next drawing
         ctx.restore();
     }
 }
@@ -118,12 +111,11 @@ class Blossom {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.maxSize = random(10, 20); // Slightly smaller for a denser look
+        this.maxSize = random(10, 20);
         this.size = 0;
         this.growthRate = random(0.15, 0.3);
         this.isGrown = false;
-        // FIXED: Use the same color logic as the falling plums for a perfect match.
-        this.color = `hsl(${random(310, 350)}, 85%, 70%)`; // Slightly lighter for visual distinction
+        this.color = `hsl(${random(310, 350)}, 85%, 70%)`;
         this.centerColor = '#FFFDD0';
     }
 
@@ -153,13 +145,11 @@ class Blossom {
     }
 }
 
-// --- CORE LOGIC: REBUILT ---
-
 /**
  * Step 1: Recursively generates the tree structure and stores it.
  */
 function generateTree(startX, startY, length, angle, width, branchesArray) {
-    if (width < 1) return; // Stop when branches are too thin
+    if (width < 1) return;
 
     const endX = startX + length * Math.cos(angle);
     const endY = startY + length * Math.sin(angle);
@@ -168,10 +158,8 @@ function generateTree(startX, startY, length, angle, width, branchesArray) {
     const newLength = length * 0.85;
     const newWidth = width * 0.75;
 
-    // Create a main continuing branch
     generateTree(endX, endY, newLength, angle + random(-0.2, 0.2), newWidth, branchesArray);
     
-    // Create side branches
     if (width > 10 && Math.random() < 0.8) {
         generateTree(endX, endY, newLength * 0.7, angle + random(0.3, 0.8), newWidth, branchesArray);
     }
@@ -184,12 +172,11 @@ function generateTree(startX, startY, length, angle, width, branchesArray) {
  * Step 2: Intelligently places blossoms ONLY on the thin outer branches.
  */
 function populateBlossoms(branchesArray, blossomsArray) {
-    const thinBranches = branchesArray.filter(b => b.w < 4); // Filter for "twigs"
+    const thinBranches = branchesArray.filter(b => b.w < 4);
     if (thinBranches.length === 0) return;
 
     for (let i = 0; i < NUM_BLOSSOMS; i++) {
         const randomBranch = thinBranches[Math.floor(Math.random() * thinBranches.length)];
-        // Add a blossom at the tip (end point) of the randomly chosen thin branch
         blossomsArray.push(new Blossom(randomBranch.ex, randomBranch.ey));
     }
 }
@@ -217,17 +204,14 @@ function animate() {
     ctx.fillStyle = 'rgba(255, 240, 245, 0.4)';
     ctx.fillRect(0, 0, width, height);
     
-    // One-time initialization
     if (!isInitialized) {
         generateTree(width / 2, height, height * 0.35, -Math.PI / 2, 30, treeBranches);
         populateBlossoms(treeBranches, blossoms);
         isInitialized = true;
     }
 
-    // Always draw the tree
     drawTree(treeBranches, '#5C4033');
 
-    // Update and draw blossoms
     let allGrown = true;
     blossoms.forEach(blossom => {
         blossom.update();
@@ -237,7 +221,6 @@ function animate() {
         }
     });
     
-    // Check state to create plums ONCE
     if (allGrown && plums.length === 0 && blossoms.length > 0) {
         messagePrompt.classList.add('visible');
         blossoms.forEach(b => {
@@ -245,7 +228,6 @@ function animate() {
         });
     }
     
-    // Animate plums if they exist
     if (plums.length > 0) {
         plums.forEach(plum => {
             plum.update();
