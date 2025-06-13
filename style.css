@@ -18,8 +18,8 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* UPDATED: Reduced gap for a more compact layout */
-    gap: 25px; 
+    /* UPDATED: Further reduced gap for a more compact layout */
+    gap: 20px; 
     z-index: 10;
     transition: opacity 0.8s ease-in-out;
 }
@@ -145,9 +145,9 @@ body, html {
 }
 
 #start-button svg {
-    /* UPDATED: Increased heart icon size */
-    width: 50px;
-    height: 50px;
+    /* UPDATED: Increased heart icon size to be much more prominent */
+    width: 60px;
+    height: 60px;
     color: white;
 }
 
