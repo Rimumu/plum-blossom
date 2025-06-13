@@ -18,8 +18,7 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* UPDATED: Kept gap small for a compact layout */
-    gap: 15px; 
+    gap: 15px;
     z-index: 10;
     transition: opacity 0.8s ease-in-out;
 }
@@ -38,8 +37,7 @@ body, html {
     border: 5px solid white;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
     opacity: 0;
-    /* UPDATED: Chained animations for photo entry and pulsing */
-    animation: 
+    animation:
         photo-fade-in 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.2s,
         photo-pulse 3s infinite ease-in-out 1.5s;
 }
@@ -118,28 +116,10 @@ body, html {
     }
 }
 
-/* UPDATED: Start Button Styles */
-#start-button {
-    background: linear-gradient(145deg, #f87c9d, #e25c6e);
-    border: none;
-    border-radius: 50%;
-    width: 90px;
-    height: 90px;
-    cursor: pointer;
-    /* Set position to relative to act as a container for the absolute-positioned SVG */
-    position: relative;
-    box-shadow: 0 8px 25px rgba(226, 92, 110, 0.35),
-                inset 0 -4px 10px rgba(0,0,0,0.1);
-    opacity: 0;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-    animation:
-        button-bounce-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.8s,
-        pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.6s;
-}
+/* --- DEFINITIVE HEART BUTTON FIX --- */
 
-/* UPDATED: Start Button Styles */
+/* This makes the original button container invisible and removes its space */
 #start-button {
-    /* This makes the original button container invisible and removes its space */
     background: transparent;
     border: none;
     padding: 0;
@@ -154,13 +134,10 @@ body, html {
     height: 100px;
     fill: #E25C6E; /* Fills the heart with a vibrant pink */
     cursor: pointer;
-    /*
-      drop-shadow is used instead of box-shadow because it perfectly traces
-      the shape of the heart, giving it a beautiful, clean shadow.
-    */
+    /* drop-shadow traces the heart shape perfectly */
     filter: drop-shadow(0 6px 15px rgba(226, 92, 110, 0.5));
     transition: transform 0.2s ease-out, filter 0.2s ease-out;
-    
+
     /* The pulse animation is now applied directly to the heart shape */
     animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1) 2.6s;
 }
@@ -173,9 +150,7 @@ body, html {
     animation-play-state: paused;
 }
 
-/* The keyframe animation is updated to animate the 'filter' and 'transform'
-  properties of the SVG, instead of the old box-shadow.
-*/
+/* The keyframe animation is updated to animate the 'filter' and 'transform' of the SVG */
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
@@ -186,6 +161,7 @@ body, html {
         filter: drop-shadow(0 10px 20px rgba(226, 92, 110, 0.7));
     }
 }
+
 
 /* --- Main Animation Content --- */
 #main-content {
@@ -258,7 +234,7 @@ body, html {
         height: 120px;
     }
     #landing-title {
-        font-size: 3rem;
+        font-.size: 3rem;
     }
     #message-prompt p {
         font-size: 1rem;
