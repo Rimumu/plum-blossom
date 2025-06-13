@@ -14,7 +14,7 @@ let branchDrawn = false;
 let blossoms = [];
 let plums = [];
 let treeBranches = []; // Array to store the tree structure
-const NUM_BLOSSOMS = 35; 
+const NUM_BLOSSOMS = 70; // Increased for a fuller tree
 
 // --- Event Listeners ---
 window.addEventListener('resize', () => {
@@ -132,36 +132,50 @@ class Blossom {
 }
 
 /**
- * NEW: Generates the tree structure and stores it in an array. Does not draw.
+ * REWORKED: Generates tree structure and places blossoms ON the branches.
  * This function runs only ONCE.
  */
 function generateTree(startX, startY, length, angle, width, branchesArray, blossomsArray) {
     const endX = startX + length * Math.cos(angle);
     const endY = startY + length * Math.sin(angle);
 
+    // Store the branch segment to be drawn later
     branchesArray.push({ sx: startX, sy: startY, ex: endX, ey: endY, w: width });
 
-    if (blossomsArray.length < NUM_BLOSSOMS) {
-        blossomsArray.push(new Blossom(endX, endY));
+    // NEW LOGIC: Add blossoms along the branch, not just at the end.
+    if (blossomsArray.length < NUM_BLOSSOMS && length > 15 && Math.random() < 0.75) {
+        // Pick a random point along the current branch segment
+        const t = random(0.2, 1); // From 20% to 100% of the way along the branch
+        const blossomX = startX + t * (endX - startX);
+        const blossomY = startY + t * (endY - startY);
+        blossomsArray.push(new Blossom(blossomX, blossomY));
     }
 
-    if (length < 20) return;
+    // Stop recursion on smaller twigs
+    if (length < 20) {
+        // Add one final blossom at the tip of the smallest branches for a nice effect
+        if (blossomsArray.length < NUM_BLOSSOMS) {
+            blossomsArray.push(new Blossom(endX, endY));
+        }
+        return;
+    }
 
     const newLength = length * 0.8;
     const newWidth = width * 0.75;
     
-    generateTree(endX, endY, newLength, angle + random(-0.1, 0.1), newWidth, branchesArray, blossomsArray);
-    if (Math.random() < 0.6) {
-        generateTree(endX, endY, newLength * 0.8, angle + random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
+    // Recursive calls
+    generateTree(endX, endY, newLength, angle + random(-0.2, 0.2), newWidth, branchesArray, blossomsArray);
+    if (Math.random() < 0.7) {
+        generateTree(endX, endY, newLength * 0.9, angle + random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
     }
-    if (Math.random() < 0.6) {
-        generateTree(endX, endY, newLength * 0.8, angle - random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
+    if (Math.random() < 0.7) {
+        generateTree(endX, endY, newLength * 0.9, angle - random(0.3, 0.6), newWidth * 0.8, branchesArray, blossomsArray);
     }
 }
 
+
 /**
- * NEW: Draws the tree from the stored branches array.
- * This function runs EVERY frame.
+ * Draws the tree from the stored branches array. This runs EVERY frame.
  */
 function drawTree(branchesArray, color) {
     ctx.strokeStyle = color;
@@ -177,7 +191,7 @@ function drawTree(branchesArray, color) {
 
 
 /**
- * Main animation loop - REWORKED
+ * Main animation loop
  */
 function animate() {
     ctx.fillStyle = 'rgba(255, 240, 245, 0.4)';
