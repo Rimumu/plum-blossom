@@ -18,8 +18,8 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* Adjusted gap for new image */
-    gap: 30px; 
+    /* UPDATED: Reduced gap for a more compact layout */
+    gap: 25px; 
     z-index: 10;
     transition: opacity 0.8s ease-in-out;
 }
@@ -38,7 +38,10 @@ body, html {
     border: 5px solid white;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
     opacity: 0;
-    animation: photo-fade-in 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.2s;
+    /* UPDATED: Chained animations for photo entry and pulsing */
+    animation: 
+        photo-fade-in 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.2s,
+        photo-pulse 3s infinite ease-in-out 1.5s;
 }
 
 @keyframes photo-fade-in {
@@ -49,6 +52,18 @@ body, html {
     100% {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+/* NEW: Infinite pulse animation for the photo */
+@keyframes photo-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
     }
 }
 
@@ -125,15 +140,18 @@ body, html {
 #start-button:hover {
     transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(226, 92, 110, 0.6);
+    /* Make the animation pause on hover for a better user experience */
+    animation-play-state: paused;
 }
 
 #start-button svg {
-    width: 40px;
-    height: 40px;
+    /* UPDATED: Increased heart icon size */
+    width: 50px;
+    height: 50px;
     color: white;
 }
 
-/* NEW: Keyframe animation for the button pulse */
+/* Keyframe animation for the button pulse */
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
