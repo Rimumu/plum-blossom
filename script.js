@@ -48,7 +48,6 @@ class Plum {
         this.y = y;
         this.size = random(4, 8); // This is now the major radius of the ellipse
         this.color = `hsl(${random(310, 350)}, 85%, 68%)`;
-        // FIXED: Adjusted for slower, more varied speeds
         this.vx = random(-0.15, 0.15); // Gentle side-to-side drift
         this.vy = random(0.1, 0.4);   // Slower initial downward speed with more variance
         this.gravity = 0.008;         // Reduced gravity for a floatier effect
@@ -58,12 +57,16 @@ class Plum {
         this.driftLife = random(80, 150);
         this.rotation = random(0, Math.PI * 2);
         this.rotationSpeed = random(-0.02, 0.02);
+        // FIXED: Properties for a gentler, more varied wind effect
+        this.windStrength = random(0.02, 0.07); // Each petal has its own wind sensitivity
+        this.phaseOffset = random(0, Math.PI * 2);  // Each petal sways on its own timing
     }
 
     update() {
         this.life++;
         if (this.life > this.driftLife) {
-            this.wind = Math.sin(this.life / 60) * 0.1;
+            // FIXED: Use the individual wind properties for a more natural, gentle sway
+            this.wind = Math.sin(this.life / 60 + this.phaseOffset) * this.windStrength;
         }
         this.vy += this.gravity;
         this.vx += this.wind;
@@ -85,7 +88,6 @@ class Plum {
 
             // Reset its physics properties for a new fall
             this.life = 0;
-            // FIXED: Use the same slower, varied speed settings on reset
             this.vx = random(-0.15, 0.15);
             this.vy = random(0.1, 0.4);
             this.wind = 0;
@@ -221,10 +223,8 @@ function animate() {
         }
     });
     
-    // FIXED: Create fewer plums for a less crowded effect.
     if (allGrown && plums.length === 0 && blossoms.length > 0) {
         messagePrompt.classList.add('visible');
-        // A plum will be created for roughly every 3rd blossom.
         blossoms.forEach((b, index) => {
             if (index % 3 === 0) {
                 plums.push(new Plum(b.x, b.y));
