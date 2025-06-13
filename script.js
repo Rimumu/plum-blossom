@@ -18,10 +18,10 @@ let plums = [];
 let treeBranches = [];
 const NUM_BLOSSOMS = 260;
 let trailPlums = [];
-// NEW: State for spacing out the trail particles
+let ripples = []; // NEW: Array to hold the ripple objects
 let lastTrailX = -1;
 let lastTrailY = -1;
-const MIN_TRAIL_SPACING = 30; // Min pixels the mouse must move to create a new flower
+const MIN_TRAIL_SPACING = 30;
 
 
 // --- Landing Page Text Animation ---
@@ -54,21 +54,27 @@ startButton.addEventListener('click', () => {
     }, 800);
 });
 
-// UPDATED: This listener is now "throttled" to space out the trail
 window.addEventListener('mousemove', (e) => {
     const currentX = e.clientX;
     const currentY = e.clientY;
-
     const dx = currentX - lastTrailX;
     const dy = currentY - lastTrailY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Only add a new flower if the mouse has moved enough distance
     if (distance > MIN_TRAIL_SPACING || lastTrailX === -1) {
         trailPlums.push(new TrailPlum(currentX, currentY));
         lastTrailX = currentX;
         lastTrailY = currentY;
     }
+});
+
+// NEW: Click listener for the ripple effect
+window.addEventListener('click', (e) => {
+    // Prevent ripple when clicking the heart button
+    if (e.target.closest('#start-button')) {
+        return;
+    }
+    ripples.push(new Ripple(e.clientX, e.clientY));
 });
 
 
@@ -79,27 +85,54 @@ function random(min, max) {
 
 // --- Classes for Animation Objects ---
 
-// UPDATED: Trail particles are now smaller
+// NEW: Class to manage a single ripple effect
+class Ripple {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = 80; // The ripple won't get bigger than this
+        this.speed = 2.5;    // How fast the ripple expands
+        this.opacity = 0.8;  // Starts fairly visible
+        this.fadeRate = 0.03;
+        this.lineWidth = 3;
+    }
+
+    update() {
+        this.radius += this.speed;
+        this.opacity -= this.fadeRate;
+        if (this.opacity < 0) this.opacity = 0;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        // The ripple is a soft pink that fades out
+        ctx.strokeStyle = `rgba(226, 92, 110, ${this.opacity})`;
+        ctx.lineWidth = this.lineWidth;
+        ctx.stroke();
+    }
+}
+
+
 class TrailPlum {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = random(5, 10); // Reduced size range for smaller flowers
+        this.size = random(5, 10);
         this.opacity = 1;
         this.color = `hsl(${random(310, 350)}, 85%, 72%)`;
         this.centerColor = '#FFFDD0';
         this.rotation = random(0, Math.PI * 2);
         this.fadeRate = 0.03;
-        this.shrinkRate = 0.15; // Adjusted shrink rate for smaller size
+        this.shrinkRate = 0.15;
     }
-
     update() {
         this.size -= this.shrinkRate;
         this.opacity -= this.fadeRate;
         if (this.size < 0) this.size = 0;
         if (this.opacity < 0) this.opacity = 0;
     }
-
     draw() {
         ctx.save();
         ctx.globalAlpha = this.opacity;
@@ -119,7 +152,6 @@ class TrailPlum {
         ctx.restore();
     }
 }
-
 
 class Plum {
     constructor(x, y) {
@@ -244,6 +276,16 @@ function animate() {
     ctx.fillStyle = 'rgba(255, 240, 245, 0.4)';
     ctx.fillRect(0, 0, width, height);
     
+    // NEW: Update and draw ripples first, so they are in the background
+    for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.update();
+        r.draw();
+        if (r.opacity <= 0) {
+            ripples.splice(i, 1);
+        }
+    }
+    
     if (treeInitialized) {
         drawTree(treeBranches, '#5C4033');
         let allGrown = true;
@@ -298,6 +340,7 @@ function init() {
         blossoms = [];
         plums = [];
         treeBranches = [];
+        ripples = []; // Clear ripples on resize too
         ctx.clearRect(0, 0, width, height); 
     });
 
